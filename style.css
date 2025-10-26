@@ -1,0 +1,75 @@
+/* Cute pastel diary theme (1b) + page-turn (2c) + countdown hearts */
+
+/* Colors */
+:root{
+  --bg: #fff6fb;
+  --panel: #fff;
+  --accent: #ff7fb5;
+  --accent-2: #ffd3e8;
+  --ink: #3a2b2b;
+  --paper: #fff7ec;
+  --shadow: rgba(58,43,43,0.08);
+}
+
+/* Base layout */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family: 'Poppins', system-ui, Arial, Helvetica, sans-serif;background:linear-gradient(180deg,#fff6fb,#fffaf4);color:var(--ink)}
+body{display:flex;align-items:center;justify-content:center;padding:18px}
+
+/* STAGE */
+.stage{width:100%;max-width:980px;display:grid;grid-template-columns:1fr 420px;gap:24px;align-items:start}
+@media (max-width:900px){.stage{grid-template-columns:1fr;gap:14px}}
+
+/* CARD */
+.card-wrap{perspective:1200px;display:flex;align-items:center;justify-content:center;height:260px}
+.card{width:360px;height:220px;border-radius:16px;position:relative;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.2,.9,.3,1);cursor:pointer;box-shadow:0 12px 30px var(--shadow)}
+.card.opened{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px}
+.front{background:linear-gradient(180deg,var(--accent-2),#fff);border:3px solid rgba(255,127,181,0.12)}
+.emoji{font-size:48px;margin-bottom:6px}
+.front-title{font-weight:600;color:#5b2a3b;font-size:18px}
+.hint{font-size:12px;color:#8b6a73;margin-top:8px}
+.back{transform:rotateY(180deg);background:linear-gradient(180deg,#fff8fb,#fff);border:2px solid rgba(255,127,181,0.08);color:#4a2b3a;padding:16px;box-shadow:inset 0 -6px 20px rgba(255,200,230,0.03)}
+
+/* DIARY */
+.diary{background:transparent;min-height:320px;display:flex;flex-direction:column;align-items:stretch;gap:12px;position:relative}
+.cover{background:linear-gradient(180deg,#ffdae8,#ffd6f0);border-radius:12px;padding:18px;box-shadow:0 10px 30px rgba(213,92,142,0.08);text-align:center;border:1px solid rgba(255,255,255,0.6)}
+.cover-title{font-weight:700;color:#8a2650;font-size:20px}
+.cover-sub{font-size:13px;color:#8a3b5b;margin-top:6px}
+
+/* PAGE (hidden behind cover) with page-turn animation */
+.page{background:var(--paper);border-radius:10px;padding:14px;box-shadow:0 10px 30px rgba(160,120,140,0.08);transform-origin:left center;transform:rotateY(-90deg);opacity:0;transition:transform .9s cubic-bezier(.2,.9,.3,1),opacity .6s}
+.page.open{transform:rotateY(0);opacity:1}
+.page-inner{min-height:260px;display:flex;flex-direction:column;gap:8px}
+.page-header{display:flex;align-items:center;border-bottom:1px dashed rgba(120,80,100,0.06);padding-bottom:8px}
+.page-header h3{margin:0;font-size:18px;color:#7a2e4b}
+.day{margin-left:auto;font-size:12px;color:#9b6b83}
+.lines{padding-top:10px;display:flex;flex-direction:column;gap:10px}
+.compliment{background:linear-gradient(90deg,#fff,#fffaf2);padding:10px;border-radius:8px;border-left:4px solid rgba(255,127,181,0.16);font-size:15px;color:#4a2b3a}
+
+/* TURN BUTTON */
+.turn-btn{margin-top:10px;background:linear-gradient(90deg,#ff7fb5,#ffd3e8);border:none;padding:10px 14px;border-radius:10px;color:#2b0f20;font-weight:600;cursor:pointer;box-shadow:0 8px 20px rgba(255,127,181,0.12)}
+.turn-btn.hidden{display:none}
+
+/* POPUP + CONFETTI CANVAS */
+.popup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:60}
+.popup .message{z-index:61;position:relative;padding:22px 30px;border-radius:14px;background:linear-gradient(180deg,#fff8fb,#fff0f6);border:1px solid rgba(255,127,181,0.12);box-shadow:0 20px 40px rgba(200,150,180,0.08);color:#8b2b57;font-size:36px;transform:scale(.96);opacity:0;transition:transform .4s,opacity .4s}
+.popup.show .message{transform:scale(1);opacity:1}
+#confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+/* COUNTDOWN overlay */
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:80}
+.countbox{position:relative;z-index:82;text-align:center;color:#fff}
+#countNumber{font-size:88px;font-weight:800;text-shadow:0 6px 18px rgba(0,0,0,0.35)}
+.subtitle{margin-top:8px;opacity:.95}
+
+/* HEARTS BG (behind countdown) */
+.hearts-bg{position:absolute;inset:0;z-index:81;overflow:hidden;background:radial-gradient(circle at 30% 20%, rgba(255,255,255,0.04), transparent 30%)}
+.hearts-bg .heart{position:absolute;bottom:-60px;width:30px;height:30px;transform-origin:center;opacity:0.95}
+.hearts-bg .heart:before,.hearts-bg .heart:after{content:'';position:absolute;background:rgba(255,120,180,0.95);border-radius:50%}
+.hearts-bg .heart:before{width:16px;height:24px;left:7px;top:0;transform:rotate(-45deg)}
+.hearts-bg .heart:after{width:16px;height:24px;left:0;top:0;transform:rotate(45deg)}
+
+/* PLAY fallback */
+.play-fallback{position:fixed;right:18px;bottom:18px;padding:10px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,#ff7fb5,#ffd3e8);color:#2b0f20;font-weight:700;z-index:90;cursor:pointer;box-shadow:0 8px 20px rgba(255,127,181,0.12)}
+.hidden{display:none}
