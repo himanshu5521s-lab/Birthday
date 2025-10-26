@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday — Diary</title>
+  <style>
+    /* Basic reset */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffefba 0%,#ffffff 40%,#ffd1dc 100%);}
+
+    /* Container */
+    .stage{width:100%;max-width:920px;margin:32px auto;padding:24px;}
+
+    /* Home screen */
+    .home{height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+    .big-title{font-size:4rem;line-height:1;color:#8b2b8b;text-shadow:0 6px 18px rgba(139,43,139,.08);font-weight:700;text-align:center}
+    .start-btn{background:linear-gradient(180deg,#ff8da1,#ff5e9e);border:none;padding:14px 28px;border-radius:12px;font-size:1.25rem;color:white;cursor:pointer;box-shadow:0 8px 24px rgba(255,94,158,.18)}
+    .start-btn:active{transform:translateY(1px)}
+
+    /* Diary wrapper */
+    .diary-wrap{display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px}
+    .diary{position:relative;width:720px;height:420px;perspective:1200px}
+
+    /* Pages container (for sliding) */
+    .pages{position:relative;width:100%;height:100%;overflow:hidden;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.12);background:linear-gradient(180deg,#fffef6,#fff4e6)}
+    .pages-inner{display:flex;height:100%;width:300%;transition:transform .9s cubic-bezier(.22,.9,.34,1)}
+    .page{flex:0 0 33.3333%;padding:40px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px}
+
+    /* Page visual */
+    .page-card{width:100%;height:100%;border-radius:16px;padding:28px;background:linear-gradient(180deg,#fffef6,#fff7ed);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 30px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.03);display:flex;flex-direction:column;gap:12px}
+    .page-number{font-size:0.9rem;color:#9b7aa0}
+    .page-title{font-size:1.8rem;color:#5b2b5a;font-weight:700}
+    .page-text{font-size:1.15rem;color:#333;line-height:1.5}
+
+    /* small diary top */
+    .diary-top{display:flex;gap:12px;align-items:center}
+    .diary-top .spine{width:12px;height:48px;background:linear-gradient(180deg,#e07ab8,#9f3b8f);border-radius:6px}
+    .diary-top .label{font-weight:700;color:#6e2f5f}
+
+    /* Confetti popup */
+    .popup{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999}
+    .popup .box{background:linear-gradient(180deg,#fff,#fff9e6);padding:28px;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.15);text-align:center;max-width:640px}
+    .popup h2{font-size:2rem;color:#8b2b8b;margin-bottom:8px}
+    .popup p{font-size:1.1rem;color:#333;margin-bottom:14px}
+    .home-return{display:inline-block;padding:10px 18px;border-radius:10px;background:linear-gradient(180deg,#67c3ff,#2b9cff);color:white;text-decoration:none;margin-top:8px}
+
+    /* Emoji floaters */
+    .emoji{position:fixed;font-size:2rem;pointer-events:none;animation:pop .9s linear forwards}
+    @keyframes pop{0%{transform:translateY(0) scale(.6);opacity:0}50%{opacity:1;transform:translateY(-30px) scale(1.15)}100%{transform:translateY(-140vh) scale(.9);opacity:0}}
+
+    /* small controls */
+    .controls{display:flex;gap:12px;align-items:center;margin-top:12px}
+    .small-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(0,0,0,.06);background:white;cursor:pointer}
+
+    /* Responsive */
+    @media(max-width:800px){
+      .diary{width:92vw;height:62vh}
+      .big-title{font-size:3rem}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <!-- HOME -->
+    <section class="home" id="homeScreen">
+      <div class="big-title">HAPPY BIRTHDAY</div>
+      <button class="start-btn" id="startBtn">Click</button>
+      <div style="font-size:.95rem;color:#5b2b5a;opacity:.9;margin-top:6px">Tap the button to open your diary — music will try to play automatically (may be blocked by browser).</div>
+    </section>
+
+    <!-- DIARY -->
+    <section class="diary-wrap" id="diaryScreen" aria-hidden="true">
+      <div class="diary-top">
+        <div class="spine"></div>
+        <div class="label">Personal Diary</div>
+      </div>
+
+      <div class="diary" role="region" aria-label="Birthday diary">
+        <div class="pages" id="pages">
+          <div class="pages-inner" id="pagesInner">
+
+            <!-- Page 1 -->
+            <article class="page">
+              <div class="page-card">
+                <div class="page-number">Page 1</div>
+                <div class="page-title">Wishing you an amazing birthday!</div>
+                <div class="page-text">Amazing happy birthday to my special person — may your day be full of joy, surprises, and small moments that mean the most.</div>
+              </div>
+            </article>
+
+            <!-- Page 2 -->
+            <article class="page">
+              <div class="page-card">
+                <div class="page-number">Page 2</div>
+                <div class="page-title">You're truly one of a kind</div>
+                <div class="page-text">You have a warmth and strength that brightens tough days. Thank you for holding on through the ups and downs — your presence means more than words.</div>
+              </div>
+            </article>
+
+            <!-- Page 3 -->
+            <article class="page">
+              <div class="page-card">
+                <div class="page-number">Page 3</div>
+                <div class="page-title">More amazing years ahead</div>
+                <div class="page-text">Be happy — more amazing years are coming your way. Keep smiling, cherish your life, and enjoy every step of the journey.</div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="small-btn" id="prevBtn">Prev</button>
+          <button class="small-btn" id="nextBtn">Next</button>
+          <div style="margin-left:auto;font-size:.95rem;color:#6b2f6b">Auto slide every 7s • slides horizontally</div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Audio: hosted instrumental happy birthday -->
+  <audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4f4cc7f7a7.mp3?filename=happy-birthday-to-you-14398.mp3" loop></audio>
+
+  <!-- Popup after diary ends -->
+  <div class="popup" id="popup">
+    <div class="box">
+      <h2>Happy Birthday! 🎉</h2>
+      <p>Wishing you a beautiful day — celebrate, smile, and enjoy.</p>
+      <a href="#" id="homeReturn" class="home-return">Return Home</a>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const SLIDE_DURATION = 7000; // 7s per user request
+
+    // Elements
+    const startBtn = document.getElementById('startBtn');
+    const homeScreen = document.getElementById('homeScreen');
+    const diaryScreen = document.getElementById('diaryScreen');
+    const pagesInner = document.getElementById('pagesInner');
+    const bgMusic = document.getElementById('bgMusic');
+    const popup = document.getElementById('popup');
+    const homeReturn = document.getElementById('homeReturn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // State
+    let currentIndex = 0; // 0..2
+    const totalPages = 3;
+    let slideTimer = null;
+    let emojiTimer = null;
+
+    // Start sequence when user clicks the start button
+    startBtn.addEventListener('click', ()=>{
+      // show diary
+      homeScreen.style.display = 'none';
+      diaryScreen.style.display = 'flex';
+      diaryScreen.setAttribute('aria-hidden','false');
+
+      // Attempt autoplay (user chose B - autoplay). Browsers may block it; we try and ignore errors.
+      const tryPlay = bgMusic.play();
+      if(tryPlay !== undefined){
+        tryPlay.then(()=>{
+          // autoplay succeeded
+        }).catch(()=>{
+          // autoplay blocked — try again silently when user interacts
+          document.body.addEventListener('click', ()=> bgMusic.play(), {once:true});
+        });
+      }
+
+      startSliding();
+      startRandomEmojis();
+    });
+
+    // Sliding functions
+    function showIndex(i){
+      currentIndex = (i + totalPages) % totalPages;
+      const perc = -(currentIndex * 100 / totalPages);
+      pagesInner.style.transform = `translateX(${perc}%)`;
+    }
+
+    function startSliding(){
+      stopSliding();
+      slideTimer = setInterval(()=>{
+        currentIndex++;
+        if(currentIndex >= totalPages){
+          stopSliding();
+          endDiarySequence();
+          return;
+        }
+        showIndex(currentIndex);
+      }, SLIDE_DURATION);
+      // show first page immediately
+      showIndex(0);
+    }
+
+    function stopSliding(){
+      if(slideTimer) {clearInterval(slideTimer); slideTimer = null}
+    }
+
+    // Prev/Next controls
+    prevBtn.addEventListener('click', ()=>{
+      stopSliding();
+      currentIndex = (currentIndex - 1 + totalPages) % totalPages;
+      showIndex(currentIndex);
+    });
+    nextBtn.addEventListener('click', ()=>{
+      stopSliding();
+      currentIndex = (currentIndex + 1) % totalPages;
+      showIndex(currentIndex);
+    });
+
+    // When diary ends: show popup + emoji floaters
+    function endDiarySequence(){
+      popup.style.display = 'flex';
+      createEmojiBurst(18);
+      // pause music briefly then resume (optional)
+      try{ bgMusic.currentTime = 0; }catch(e){}
+    }
+
+    homeReturn.addEventListener('click',(e)=>{
+      e.preventDefault();
+      // reset
+      popup.style.display = 'none';
+      diaryScreen.style.display = 'none';
+      homeScreen.style.display = 'flex';
+      diaryScreen.setAttribute('aria-hidden','true');
+      currentIndex = 0;
+      pagesInner.style.transform = 'translateX(0)';
+      try{ bgMusic.pause(); bgMusic.currentTime = 0; }catch(e){}
+      stopRandomEmojis();
+    });
+
+    // Create floating random emojis
+    function createEmojiBurst(n){
+      const emojis = ['🎉','🎂','🎈','✨','🥳','💫','🎁','😍','😊','🥰'];
+      for(let i=0;i<n;i++){
+        const span = document.createElement('div');
+        span.className = 'emoji';
+        span.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        // random horizontal start between 0% - 90%
+        const left = Math.random()*90;
+        const top = Math.random()*90;
+        span.style.left = left + 'vw';
+        span.style.top = top + 'vh';
+        span.style.fontSize = (Math.random()*30 + 22) + 'px';
+        document.body.appendChild(span);
+        // remove after animation duration
+        setTimeout(()=>{ if(span && span.remove) span.remove(); }, 1200);
+      }
+    }
+
+    // Start random single-emoji pops at varying intervals (2-4s).
+    function startRandomEmojis(){
+      stopRandomEmojis();
+      (function scheduleNext(){
+        const delay = Math.random()*2000 + 2000; // 2000–4000ms
+        emojiTimer = setTimeout(()=>{
+          createEmojiBurst(1);
+          scheduleNext();
+        }, delay);
+      })();
+    }
+    function stopRandomEmojis(){ if(emojiTimer){ clearTimeout(emojiTimer); emojiTimer = null; } }
+
+    // Accessibility: allow keyboard start
+    startBtn.addEventListener('keyup',(e)=>{if(e.key === 'Enter') startBtn.click()});
+
+    // On page unload, stop audio
+    window.addEventListener('beforeunload', ()=>{try{bgMusic.pause()}catch(e){}});
+
+    // If user never clicks start and wants to jump to diary from URL hash
+    if(location.hash === '#diary'){
+      startBtn.click();
+    }
+
+  </script>
+
+  <!--
+    Deployment notes for GitHub Pages:
+    1. Put this file as `index.html` at the repo root.
+    2. Add your audio file named `music.mp3` in the same folder (or update the <audio> src attribute).
+    3. Optionally add `qr-code.png` and reference it in the HTML where you'd like.
+    4. In GitHub: Settings → Pages → Source: main branch, / (root). Save.
+    5. Visit https://yourusername.github.io/your-repo/ to see the rendered page.
+
+    NOTE about autoplay: You selected "autoplay" (option B). Modern browsers sometimes block autoplay with sound. The site attempts to play automatically; if the browser blocks audio, a simple click anywhere will start the music (the start button interaction should already satisfy this on most browsers).
+  -->
+
+</body>
+</html>
