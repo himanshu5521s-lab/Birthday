@@ -1,13 +1,5 @@
-/* script.js
-   - 3-second countdown with cute hearts background
-   - After countdown: reveal main stage, show HAPPY BIRTHDAY popup + confetti
-   - Card flips on click; diary cover "page-turn" reveals compliments (2c)
-   - Music: synthesized "Happy Birthday" melody via Web Audio API (loops)
-   - If autoplay blocked, a play button appears
-*/
-
 (() => {
-  const COUNT = 3; // 3 seconds
+  const COUNT = 3; // Countdown seconds
   const overlay = document.getElementById('countdownOverlay');
   const countNumber = document.getElementById('countNumber');
   const mainStage = document.getElementById('mainStage');
@@ -20,7 +12,7 @@
   const page = document.getElementById('page');
   const turnBtn = document.getElementById('turnBtn');
 
-  // --- Hearts background creation ---
+  // --- Hearts background ---
   (function makeHearts() {
     const container = document.querySelector('.hearts-bg');
     if (!container) return;
@@ -39,7 +31,6 @@
       el.style.animation = `rise ${dur}s linear ${delay}s infinite`;
       container.appendChild(el);
     }
-    // dynamic keyframes
     const s = document.createElement('style');
     s.textContent = `
     @keyframes rise {
@@ -50,78 +41,7 @@
     document.head.appendChild(s);
   })();
 
-  // --- Countdown ---
-  (function countdown() {
-    let t = COUNT;
-    countNumber.textContent = t;
-    const id = setInterval(() => {
-      t--;
-      if (t <= 0) {
-        clearInterval(id);
-        // fade overlay
-        overlay.style.transition = 'opacity .45s ease';
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 600);
-        revealMain();
-      } else {
-        // little pop animation
-        countNumber.classList.remove('popme');
-        void countNumber.offsetWidth;
-        countNumber.classList.add('popme');
-        countNumber.textContent = t;
-      }
-    }, 1000);
-  })();
-
-  // --- Reveal main stage and show popup + play music ---
-  function revealMain() {
-    mainStage.classList.remove('hidden');
-    mainStage.removeAttribute('aria-hidden');
-
-    // show popup & confetti
-    popup.classList.remove('hidden');
-    popup.classList.add('show');
-    popup.removeAttribute('aria-hidden');
-
-    // start confetti
-    startConfetti();
-
-    // hide popup after 5.5s
-    setTimeout(() => {
-      popup.classList.remove('show');
-      popup.classList.add('hidden');
-      stopConfetti();
-    }, 5500);
-
-    // attempt to play music
-    tryStartMusic();
-  }
-
-  // --- Card flip and diary page-turn ---
-  card.addEventListener('click', () => {
-    if (card.classList.contains('opened')) return;
-    card.classList.add('opened');
-    setTimeout(() => {
-      // reveal turn button and show diary cover -> page-turn only after pressing turn
-      turnBtn.classList.remove('hidden');
-      turnBtn.setAttribute('aria-hidden', 'false');
-    }, 900);
-  });
-
-  turnBtn.addEventListener('click', () => {
-    // animate cover disappears and page turns in
-    diaryCover.style.transition = 'transform .7s ease, opacity .6s';
-    diaryCover.style.transform = 'translateX(-40px) rotate(-8deg)';
-    diaryCover.style.opacity = '0';
-    setTimeout(() => {
-      diaryCover.style.display = 'none';
-      page.classList.add('open'); // page-turn reveal
-      page.setAttribute('aria-hidden', 'false');
-      turnBtn.classList.add('hidden');
-    }, 600);
-  });
-
-  // --- Confetti (simple particle) ---
+  // --- Confetti ---
   let confettiAnim = null;
   function startConfetti() {
     const canvas = confettiCanvas;
@@ -162,111 +82,143 @@
       confettiAnim = requestAnimationFrame(loop);
     }
 
-    spawnBurst();
-    spawnBurst();
-    if (!confettiAnim) confettiAnim = requestAnimationFrame(loop);
-    // spawn a couple more bursts for richness
+    spawnBurst(); spawnBurst();
     let extra = 3;
     const t = setInterval(() => {
       spawnBurst();
       extra--; if (extra <= 0) clearInterval(t);
     }, 500);
 
+    confettiAnim = requestAnimationFrame(loop);
     addEventListener('resize', () => { W = canvas.width = innerWidth; H = canvas.height = innerHeight; });
   }
-
   function stopConfetti() {
     if (confettiAnim) { cancelAnimationFrame(confettiAnim); confettiAnim = null; const ctx = confettiCanvas.getContext('2d'); ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); }
   }
 
-  // --- Music: synth Happy Birthday melody (looping) via WebAudio ---
+  // --- Music (Web Audio API) ---
   let audioCtx, masterGain, isPlaying = false, loopId = null;
-  // melody as array of [midiNote, durationBeats], using 120bpm baseline
-  // Simple melody approximation (notes in MIDI numbers)
   const melody = [
-    [64, 0.75], [64, 0.25], [66, 1], [64, 1], [69, 1], [68, 2], // "Happy birthday to you"
-    [64, 0.75], [64, 0.25], [66, 1], [64, 1], [71, 1], [69, 2], // "Happy birthday to you"
-    [64, 0.75], [64, 0.25], [76, 1], [72, 1], [69, 1], [68, 1], [66, 1], // "Happy birthday dear [name]"
-    [74, 0.75], [74, 0.25], [72, 1], [69, 1], [71, 1], [69, 2] // "Happy birthday to you"
+    [64, 0.75], [64, 0.25], [66, 1], [64, 1], [69, 1], [68, 2],
+    [64, 0.75], [64, 0.25], [66, 1], [64, 1], [71, 1], [69, 2],
+    [64, 0.75], [64, 0.25], [76, 1], [72, 1], [69, 1], [68, 1], [66, 1],
+    [74, 0.75], [74, 0.25], [72, 1], [69, 1], [71, 1], [69, 2]
   ];
-
   function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
-
   function startSynth() {
     if (isPlaying) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0.12; // gentle volume
+    masterGain.gain.value = 0.12;
     masterGain.connect(audioCtx.destination);
 
-    const now = audioCtx.currentTime;
-    let t = now + 0.1;
-    const bpm = 92; // slower, gentle
+    const bpm = 92;
     const beat = 60 / bpm;
 
-    // schedule melody loop (will be re-scheduled to loop)
     function schedule(startTime) {
       let time = startTime;
       for (let i = 0; i < melody.length; i++) {
         const [note, dur] = melody[i];
         const osc = audioCtx.createOscillator();
         const env = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = midiToFreq(note);
+        osc.type = 'sine'; osc.frequency.value = midiToFreq(note);
         env.gain.value = 0;
         osc.connect(env); env.connect(masterGain);
         osc.start(time);
-        // envelope
-        env.gain.linearRampToValueAtTime(1.0, time + 0.01);
+        env.gain.linearRampToValueAtTime(1, time + 0.01);
         env.gain.linearRampToValueAtTime(0.0001, time + dur * beat - 0.02);
         osc.stop(time + dur * beat + 0.05);
         time += dur * beat;
       }
-      // return total length
       return time - startTime;
     }
 
-    // schedule repeating loop
-    const loopLen = schedule(t);
-    // set up an interval to reschedule slightly before loop ends
-    loopId = setInterval(() => {
-      // schedule again after a small gap
-      schedule(audioCtx.currentTime + 0.1);
-    }, Math.max(4000, loopLen * 1000 - 500));
-
+    const loopLen = schedule(audioCtx.currentTime + 0.1);
+    loopId = setInterval(() => { schedule(audioCtx.currentTime + 0.1); }, Math.max(4000, loopLen * 1000 - 500));
     isPlaying = true;
   }
-
   function stopSynth() {
     if (loopId) { clearInterval(loopId); loopId = null; }
     if (audioCtx) { audioCtx.close(); audioCtx = null; }
     isPlaying = false;
   }
-
-  // Try to start music; if autoplay blocked, show fallback button
   async function tryStartMusic() {
     try {
       startSynth();
-      // browsers often require a user gesture; check state
-      if (audioCtx && audioCtx.state === 'suspended') {
-        // will show fallback
-        throw new Error('suspended');
-      }
+      if (audioCtx && audioCtx.state === 'suspended') throw new Error('suspended');
     } catch (e) {
-      // show fallback play button
       playFallback.classList.remove('hidden');
-      playFallback.addEventListener('click', async () => {
-        try {
-          startSynth();
-          playFallback.classList.add('hidden');
-        } catch (err) {
-          alert('Playback failed — your browser may block sound.');
-        }
-      });
+      playFallback.addEventListener('click', () => { startSynth(); playFallback.classList.add('hidden'); });
     }
   }
 
-  // If user leaves page, stop synth & confetti
+  // --- Card flip ---
+  card.addEventListener('click', () => {
+    if (card.classList.contains('opened')) return;
+    card.classList.add('opened');
+    setTimeout(() => {
+      turnBtn.classList.remove('hidden');
+      turnBtn.setAttribute('aria-hidden', 'false');
+    }, 900);
+  });
+
+  // --- Diary page-turn ---
+  turnBtn.addEventListener('click', () => {
+    diaryCover.style.transition = 'transform .7s ease, opacity .6s';
+    diaryCover.style.transform = 'translateX(-40px) rotate(-8deg)';
+    diaryCover.style.opacity = '0';
+    setTimeout(() => {
+      diaryCover.style.display = 'none';
+      page.classList.add('open');
+      page.setAttribute('aria-hidden', 'false');
+      turnBtn.classList.add('hidden');
+    }, 600);
+  });
+
+  // --- Countdown ---
+  function startCountdown() {
+    let t = COUNT;
+    countNumber.textContent = t;
+    const id = setInterval(() => {
+      t--;
+      if (t <= 0) {
+        clearInterval(id);
+        overlay.style.transition = 'opacity .45s ease';
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 600);
+        revealPopup();
+      } else {
+        countNumber.classList.remove('popme');
+        void countNumber.offsetWidth;
+        countNumber.classList.add('popme');
+        countNumber.textContent = t;
+      }
+    }, 1000);
+  }
+
+  // --- Reveal popup + confetti ---
+  function revealPopup() {
+    mainStage.classList.remove('hidden');
+    mainStage.removeAttribute('aria-hidden');
+
+    popup.classList.remove('hidden');
+    popup.classList.add('show');
+    popup.removeAttribute('aria-hidden');
+
+    startConfetti();
+    setTimeout(() => {
+      popup.classList.remove('show');
+      popup.classList.add('hidden');
+      stopConfetti();
+    }, 5500);
+  }
+
+  // --- Init ---
+  document.addEventListener('DOMContentLoaded', () => {
+    tryStartMusic();  // Play music immediately
+    startCountdown();  // Start hearts countdown
+  });
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { stopSynth(); stopConfetti(); }
   });
